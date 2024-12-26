@@ -1,18 +1,6 @@
 const ethers = require("ethers");
 
 const utils = {
-    insertDecimalPoint: (str, count) => {
-        // 使用 padStart 进行前导零填充
-        const paddedStr = str.padStart(count + 1, '0');
-        const decimalIndex = paddedStr.length - count;
-        let result = `${paddedStr.slice(0, decimalIndex)}.${paddedStr.slice(decimalIndex)}`;
-        // 确保小数点前至少有一个零
-        if (result.startsWith('.')) {
-            result = `0${result}`;
-        }
-        return result;
-    },
-
     BN256ToBin: (str) => {
         const binaryStr = BigInt(str).toString(2);
         // 使用 padStart 确保二进制字符串长度为256
