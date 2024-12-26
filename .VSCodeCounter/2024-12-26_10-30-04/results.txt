@@ -1,0 +1,42 @@
+Date : 2024-12-26 10:30:04
+Directory : /home/nov1ce/zk-snark/git_mixer
+Total : 9 files,  71078 codes, 83 comments, 223 blanks, all 71384 lines
+
+Languages
++-------------------------+------------+------------+------------+------------+------------+
+| language                | files      | code       | comment    | blank      | total      |
++-------------------------+------------+------------+------------+------------+------------+
+| WebAssembly Text Format |          4 |     70,600 |          0 |         68 |     70,668 |
+| Solidity                |          5 |        478 |         83 |        155 |        716 |
++-------------------------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                  | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                     |          9 |     71,078 |         83 |        223 |     71,384 |
+| backend                                                               |          4 |        362 |         66 |        105 |        533 |
+| backend/contracts                                                     |          4 |        362 |         66 |        105 |        533 |
+| circuit                                                               |          3 |     35,416 |         17 |         84 |     35,517 |
+| circuit (Files)                                                       |          1 |        116 |         17 |         50 |        183 |
+| circuit/deposit_js                                                    |          1 |     17,625 |          0 |         17 |     17,642 |
+| circuit/withdraw_js                                                   |          1 |     17,675 |          0 |         17 |     17,692 |
+| frontend                                                              |          2 |     35,300 |          0 |         34 |     35,334 |
+| frontend/public                                                       |          2 |     35,300 |          0 |         34 |     35,334 |
++-----------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------+-------------------------+------------+------------+------------+------------+
+| filename                                                              | language                | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------+-------------------------+------------+------------+------------+------------+
+| /home/nov1ce/zk-snark/git_mixer/backend/contracts/MiMC5Sponge.sol     | Solidity                |         58 |          2 |         14 |         74 |
+| /home/nov1ce/zk-snark/git_mixer/backend/contracts/Mixer.sol           | Solidity                |        128 |         31 |         30 |        189 |
+| /home/nov1ce/zk-snark/git_mixer/backend/contracts/ReentrancyGuard.sol | Solidity                |         60 |         16 |         11 |         87 |
+| /home/nov1ce/zk-snark/git_mixer/backend/contracts/Verifier.sol        | Solidity                |        116 |         17 |         50 |        183 |
+| /home/nov1ce/zk-snark/git_mixer/circuit/Verifier.sol                  | Solidity                |        116 |         17 |         50 |        183 |
+| /home/nov1ce/zk-snark/git_mixer/circuit/deposit_js/deposit.wasm       | WebAssembly Text Format |     17,625 |          0 |         17 |     17,642 |
+| /home/nov1ce/zk-snark/git_mixer/circuit/withdraw_js/withdraw.wasm     | WebAssembly Text Format |     17,675 |          0 |         17 |     17,692 |
+| /home/nov1ce/zk-snark/git_mixer/frontend/public/deposit.wasm          | WebAssembly Text Format |     17,625 |          0 |         17 |     17,642 |
+| /home/nov1ce/zk-snark/git_mixer/frontend/public/withdraw.wasm         | WebAssembly Text Format |     17,675 |          0 |         17 |     17,692 |
+| Total                                                                 |                         |     71,078 |         83 |        223 |     71,384 |
++-----------------------------------------------------------------------+-------------------------+------------+------------+------------+------------+
