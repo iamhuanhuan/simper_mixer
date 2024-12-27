@@ -1,3 +1,23 @@
+## Disclaimer
+
+This project is provided as-is for educational and research purposes only. By using this code, you agree to the following terms:
+
+1.Prohibited Usage:
+    This code must not be used for any illegal, unethical, or malicious activities, including but not limited to hacking, unauthorized access, or any activity that violates applicable laws and regulations. Any such use is strictly prohibited.
+
+2.User Responsibility:
+    The user assumes full responsibility for the outcomes of using this code. The author(s) of this project shall not be held liable for any damage, loss, or legal consequences resulting from the use or misuse of this code.
+
+3.No Warranty:
+    This code is provided "as-is" without any express or implied warranties, including but not limited to the warranties of merchantability, fitness for a particular purpose, or non-infringement.
+
+
+4.Legal Indemnification:
+    The author(s) of this project explicitly disclaim any liability for the misuse of the code or its application in any unauthorized manner. Users are advised to comply with all applicable laws and regulations when using this code.
+
+
+
+
 本项目旨在设计并实现一个基于零知识证明的去中心化混币器。该混币器将利用零知识证明技术以及Groth16零知识验证系统，在保护用户隐私的前提下实现加密货币的匿名交易。
 
 
