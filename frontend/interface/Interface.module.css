@@ -1,0 +1,167 @@
+.interfaceContainer {
+    min-height: 100vh;
+    background-color: #1a202c; /* 深色背景 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.interfaceCard {
+    background-color: #2d3748; /* 深色卡片背景 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    padding: 24px;
+    width: 100%;
+    max-width: 600px;
+    color: #edf2f7; /* 浅色文本 */
+}
+
+.titleImage {
+    display: block;
+    margin: 0 auto 16px auto;
+    height: 64px;
+    width: auto;
+}
+
+.interfaceTitle {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    text-align: center;
+    color: #edf2f7; /* 浅色文本 */
+}
+
+.walletSection {
+    margin-bottom: 24px;
+}
+
+.walletInfo {
+    background-color: rgba(56, 189, 248, 0.2); /* 浅蓝色半透明背景 */
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+}
+
+.walletInfo h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: #90cdf4; 
+}
+
+.walletInfo p {
+    margin: 4px 0;
+    color: #cbd5e0;
+}
+
+.buttonContainer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
+    background-color: #3182ce; /* 蓝色 */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s ease;
+    margin: 0 8px;
+}
+
+.button:hover {
+    background-color: #2b6cb0;
+}
+
+.button.deposit {
+    background-color: #805ad5; /* 紫色 */
+}
+
+.button.deposit:hover {
+    background-color: #6b46c1;
+}
+
+.button.withdraw {
+    background-color: #e53e3e; /* 红色 */
+}
+
+.button.withdraw:hover {
+    background-color: #c53030;
+}
+
+.button.copy {
+    background-color: #38a169; /* 绿色 */
+}
+
+.button.copy:hover {
+    background-color: #2f855a;
+}
+
+.separator {
+    border: none;
+    border-top: 1px solid #4a5568;
+    margin: 24px 0;
+}
+
+.proofSection {
+    background-color: rgba(72, 187, 120, 0.2); /* 浅绿色半透明背景 */
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.proofSection h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: #68d391;
+}
+
+.proofSection pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #edf2f7;
+    background: #4a5568;
+    padding: 8px;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #4a5568;
+    border-radius: 4px;
+    resize: vertical;
+    font-size: 16px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    background-color: #1a202c;
+    color: #edf2f7;
+}
+
+.textarea:focus {
+    outline: none;
+    border-color: #3182ce;
+    box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.4);
+}
+
+.errorMessage {
+    color: #f56565;
+    margin-top: 16px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #edf2f7;
+}

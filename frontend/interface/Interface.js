@@ -1,107 +1,133 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { ethers, formatEther, toBeHex } from 'ethers';
 import { Interface as EthersInterface } from 'ethers';
 import utils from "../utils/utils";
 import { recoverAddress } from "ethers";
 
-// 导入电路中的 witness calculator
+// 导入电路中的 witness calculator，根据实际路径修改
 const wc = require("../circuit/witness_calculator.js");
 
+// 导入合约JSON，根据实际路径修改
 const mixerJSON = require("../json/Mixer.json");
 const mixerABI = mixerJSON.abi;
 const mixerInterface = new EthersInterface(mixerABI);
 
 const mixerAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
 
+// 导入CSS Module
+import styles from './Interface.module.css';
+
+// 导入图片
+import Image from 'next/image';
+import mixer from './mixer.png';
+
 const Interface = () => {
-    // 默认使用metamask钱包
+    console.log(mixer);
     const [account, updateAccount] = useState(null);
     const [proofElements, updateProofElements] = useState(null);
     const [proofStringEl, updateProofStringEl] = useState(null);
     const [textArea, updateTextArea] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    // 连接钱包
+    // 新增: currentOperation用来区分是deposit还是withdraw
+    const [currentOperation, setCurrentOperation] = useState(null); 
+    // currentOperation 取值:
+    // null: 无操作
+    // 'depositing': 正在存款
+    // 'withdrawing': 正在取款
+
+    const fetchBalance = async (address) => {
+        try {
+            const balanceHex = await window.ethereum.request({
+                method: "eth_getBalance",
+                params: [address, "latest"]
+            });
+            const formattedBalance = formatEther(balanceHex);
+            updateAccount((prev) => ({
+                ...prev,
+                balance: formattedBalance
+            }));
+        } catch (e) {
+            console.log('Error fetching balance:', e);
+            setError("Failed to fetch balance.");
+        }
+    };
+
     const connectWallet = async () => {
         try {
             if (!window.ethereum){
                 alert("Please install Metamask.");
                 throw "no-metamask";
             }
-    
+
+            setLoading(true);
+            setError(null);
+
             const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
             const chainId = window.ethereum.networkVersion;
-    
             const currentAccount = accounts[0];
-    
-            // console.log('ethers:', ethers);
-    
+
             const balanceHex = await window.ethereum.request({
                 method: "eth_getBalance",
                 params: [currentAccount, "latest"]
             });
-    
+
             const formattedBalance = formatEther(balanceHex);
-    
-            // console.log('Formatted Balance:', formattedBalance);
-    
-            // 更新用户账户信息
+
             updateAccount({
                 chainId: chainId,
                 address: currentAccount,
                 balance: formattedBalance
             });
 
+            setLoading(false);
+
         } catch (e) {
             console.log('Error in connectWallet:', e);
+            setError("Failed to connect wallet.");
+            setLoading(false);
         }
     };
 
-    // 存 0.1 ether
     const depositEther = async () => {
-        // 随机生成 secret 和 nullifier 
-        const secret = ethers.toBigInt(ethers.getBytes(ethers.randomBytes(32))).toString();
-        const nullifier = ethers.toBigInt(ethers.getBytes(ethers.randomBytes(32))).toString();
+        try {
+            setLoading(true);
+            setError(null);
+            setCurrentOperation('depositing'); // 开始存款操作
 
-        // 将生成的大数转换成二进制
-        const input = {
-            secret: utils.BN256ToBin(secret).split(""),
-            nullifier: utils.BN256ToBin(nullifier).split("")
-        };
+            const secret = ethers.toBigInt(ethers.getBytes(ethers.randomBytes(32))).toString();
+            const nullifier = ethers.toBigInt(ethers.getBytes(ethers.randomBytes(32))).toString();
 
-        // console.log(input);
+            const input = {
+                secret: utils.BN256ToBin(secret).split(""),
+                nullifier: utils.BN256ToBin(nullifier).split("")
+            };
 
-        var res = await fetch("/deposit.wasm");
-        var buffer = await res.arrayBuffer();
-        var depositWitnessCalculator = await wc(buffer);
+            var res = await fetch("/deposit.wasm");
+            var buffer = await res.arrayBuffer();
+            var depositWitnessCalculator = await wc(buffer);
 
-        // 使用witness calculator计算结果
-        const r = await depositWitnessCalculator.calculateWitness(input, 0);
+            const r = await depositWitnessCalculator.calculateWitness(input, 0);
 
-        const commitment = r[1];
-        const nullifierHash = r[2];
+            const commitment = r[1];
+            const nullifierHash = r[2];
 
-        // console.log(commitment);
-        // console.log(nullifierHash);
+            const value = toBeHex(BigInt("100000000000000000")); // 0.1 ETH
 
-        const value = toBeHex(BigInt("100000000000000000"));;
-        // console.log(value);
+            const tx = {
+                to: mixerAddress,
+                from: account.address,
+                value: value,
+                data: mixerInterface.encodeFunctionData("deposit", [commitment])
+            };
 
-        const tx = {
-            to: mixerAddress,
-            from: account.address,
-            value: value,
-            data: mixerInterface.encodeFunctionData("deposit", [commitment])
-        };
-
-        try{
             const txHash = await window.ethereum.request({ method: "eth_sendTransaction", params: [tx] });
             const receipt = await window.ethereum.request({ method: "eth_getTransactionReceipt", params: [txHash] });
             const log = receipt.logs[0];
-            // console.log(receipt);
 
             const decodedData = mixerInterface.decodeEventLog("Deposit", log.data, log.topics);
-            console.log("decodedData:");
-            console.log(decodedData);
+            console.log("decodedData:", decodedData);
 
             const proofElements = {
                 root: utils.BNToDecimal(decodedData.root),
@@ -116,63 +142,54 @@ const Interface = () => {
             console.log(proofElements);
 
             updateProofElements(btoa(JSON.stringify(proofElements)));
-        }catch(e){
+
+            await fetchBalance(account.address);
+
+            setLoading(false);
+            setCurrentOperation(null); // 操作完成重置操作状态
+
+        } catch(e) {
             console.log(e);
+            setError("Deposit failed.");
+            setLoading(false);
+            setCurrentOperation(null);
         }
     };
 
-    // 取 0.1 ether
     const withdraw = async () => {
-        // updateWithdrawButtonState(ButtonState.Disabled);
+        try {
+            if(!textArea || !textArea.value){
+                alert("Please input the proof of deposit");
+                return;
+            }
 
-        // textArea里就是构造的proof
-        if(!textArea || !textArea.value){ alert("Please input the proof of deposite"); }
+            setLoading(true);
+            setError(null);
+            setCurrentOperation('withdrawing'); // 开始取款操作
 
-        try{
-            // 导入snarkjs构造零知识证明
             const SnarkJS = window['snarkjs'];
 
             const proofString = textArea.value;
-            const proofElements = JSON.parse(atob(proofString));
-
-            // receipt = await window.ethereum.request({ method: "eth_getTransactionReceipt", params: [proofElements.txHash] });
-            // console.log(receipt);
-            // if(!receipt){ throw "empty-receipt"; }
-
-            // const log = receipt.logs[0];
-            // const decodedData = mixerInterface.decodeEventLog("Deposit", log.data, log.topics);
+            const proofEl = JSON.parse(atob(proofString));
 
             const proofInput = {
-                "root": proofElements.root,
-                "nullifierHash": proofElements.nullifierHash,
+                "root": proofEl.root,
+                "nullifierHash": proofEl.nullifierHash,
                 "recipient": utils.BNToDecimal(account.address),
-                "secret": utils.BN256ToBin(proofElements.secret).split(""),
-                "nullifier": utils.BN256ToBin(proofElements.nullifier).split(""),
-                "hashPairings": proofElements.hashPairings,
-                "hashDirections": proofElements.hashDirections
+                "secret": utils.BN256ToBin(proofEl.secret).split(""),
+                "nullifier": utils.BN256ToBin(proofEl.nullifier).split(""),
+                "hashPairings": proofEl.hashPairings,
+                "hashDirections": proofEl.hashDirections
             };
 
-            // 构造证明，得到proof和公开的信息
             const { proof, publicSignals } = await SnarkJS.groth16.fullProve(proofInput, "/withdraw.wasm", "/setup_final.zkey");
-            // console.log(proof);
-            // console.log(publicSignals);
 
-            /*
-            callInputs要和Mix.sol的withdraw保持一致
-            function withdraw(
-                uint[2] memory a,
-                uint[2][2] memory b,
-                uint[2] memory c,
-                uint[2] memory input    // 最后一项recipient不作为变量输入，而是直接读取msg.sender，以防止盗取proof修改地址
-            ) external payable nonReentrant
-            */
             const callInputs = [
                 proof.pi_a.slice(0, 2).map(utils.BN256ToHex),
                 proof.pi_b.slice(0, 2).map((row) => (utils.reverseCoordinate(row.map(utils.BN256ToHex)))),
                 proof.pi_c.slice(0, 2).map(utils.BN256ToHex),
                 publicSignals.slice(0, 2).map(utils.BN256ToHex)
             ];
-            // console.log(callInputs);
 
             const callData = mixerInterface.encodeFunctionData("withdraw", callInputs);
             const tx = {
@@ -180,98 +197,136 @@ const Interface = () => {
                 from: account.address,
                 data: callData
             };
-            // console.log(tx);
+
             const txHash = await window.ethereum.request({ method: "eth_sendTransaction", params: [tx] });
             const receipt = await window.ethereum.request({ method: "eth_getTransactionReceipt", params: [txHash] });
             console.log(receipt);
 
-            // var receipt;
-            // while(!receipt){
-            //     receipt = await window.ethereum.request({ method: "eth_getTransactionReceipt", params: [txHash] });
-            //     await new Promise((resolve, reject) => { setTimeout(resolve, 1000); });
-            // }
+            await fetchBalance(account.address);
 
-            // if(receipt){ updateWithdrawalSuccessful(true); }
-        }catch(e){
+            setLoading(false);
+            setCurrentOperation(null); // 操作完成重置操作状态
+
+        } catch(e) {
             console.log(e);
+            setError("Withdraw failed.");
+            setLoading(false);
+            setCurrentOperation(null);
         }
     };
 
-    // 该函数用来复制proof
     const copyProof = () => {
         if(proofStringEl){
-            // flashCopiedMessage();
             navigator.clipboard.writeText(proofStringEl.innerHTML);
         }  
     };
-    
 
+
+    // 根据currentOperation和loading状态决定按钮文字
+    const depositButtonText = currentOperation === 'depositing' && loading ? "Depositing..." : "Deposit 0.1 ETH";
+    const withdrawButtonText = currentOperation === 'withdrawing' && loading ? "Withdrawing..." : "Withdraw 0.1 ETH";
+    const copyButtonText = loading && currentOperation === 'depositing' ? "Copying..." : "Copy Proof"; 
+    // 当存款时显示Copying...不一定是必须的，这里仅作为示例，如果不想区分，可以直接copyButtonText = "Copy Proof";
 
     return (
-        <div>
-            {
-                account ? (
-                    <div>
-                        <p>Chain ID: {account.chainId}</p>
-                        <p>Address: {account.address}</p>
-                        <p>Balance: {account.balance} ETH</p>
+        <div className={styles.interfaceContainer}>
+            <div className={styles.interfaceCard}>
+                {/* 显示图片作为标题的一部分 */}
+                <Image
+                    src={mixer}
+                    alt="mixer"
+                    className={styles.titleImage}
+                    width={800}   // 你想要的宽度
+                    height={200}  // 根据比例选择高度，或仅指定width让Next.js自动等比缩放
+                />
+                <h1 className={styles.interfaceTitle}>ETH 混币程序</h1>
+
+                <div className={styles.walletSection}>
+                    {account ? (
+                        <div className={styles.walletInfo}>
+                            <h2>Wallet Information</h2>
+                            <p><strong>Chain ID:</strong> {account.chainId}</p>
+                            <p><strong>Address:</strong> {account.address}</p>
+                            <p><strong>Balance:</strong> {account.balance} ETH</p>
+                        </div>
+                    ) : (
+                        <div className={styles.buttonContainer}>
+                            <button 
+                                onClick={connectWallet} 
+                                className={styles.button}
+                                disabled={loading}
+                            >
+                                {loading ? "Connecting..." : "Connect Wallet"}
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                <hr className={styles.separator} />
+
+                {account && (
+                    <div className="deposit-section">
+                        {proofElements ? (
+                            <div className={styles.proofSection}>
+                                <h2>Proof of Deposit</h2>
+                                <pre ref={(proofStringEl) => { updateProofStringEl(proofStringEl); }}>
+                                    {proofElements}
+                                </pre>
+                                <button 
+                                    onClick={copyProof} 
+                                    className={`${styles.button} ${styles.copy}`}
+                                    disabled={loading}
+                                >
+                                    {copyButtonText}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className={styles.buttonContainer}>
+                                <button 
+                                    onClick={depositEther} 
+                                    className={`${styles.button} ${styles.deposit}`}
+                                    disabled={loading || currentOperation === 'withdrawing'}
+                                >
+                                    {depositButtonText}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <hr className={styles.separator} />
+
+                {account ? (
+                    <div className="withdraw-section">
+                        <label htmlFor="proof" className={styles.label}>Enter Proof of Deposit</label>
+                        <textarea 
+                            id="proof"
+                            ref={(ta) => {updateTextArea(ta);}}
+                            className={styles.textarea}
+                            rows="4"
+                            placeholder="Paste your proof here..."
+                            disabled={loading || currentOperation === 'depositing'}
+                        ></textarea>
+                        <div className={styles.buttonContainer}>
+                            <button 
+                                onClick={withdraw} 
+                                className={`${styles.button} ${styles.withdraw}`}
+                                disabled={loading || currentOperation === 'depositing'}
+                            >
+                                {withdrawButtonText}
+                            </button>
+                        </div>
                     </div>
                 ) : (
-                    <button onClick={connectWallet}>Connect Wallet</button>
-                )
-            }
+                    <p className={styles.errorMessage}>Please connect your Metamask wallet to proceed.</p>
+                )}
 
-            <div>
-                <hr/>
+                {error && (
+                    <p className={styles.errorMessage}>{error}</p>
+                )}
             </div>
-
-            {
-                account ? (
-                    <div>
-                        {
-                            proofElements ? (
-                                <div> 
-                                    <p><strong>Proof of Deposite:</strong></p>
-                                    <div style={{maxWidth: "100vw", overflowWrap: "break-word"}}>
-                                        <span ref={(proofStringEl) => { updateProofStringEl(proofStringEl);}}>{proofElements}</span>
-                                    </div>
-                                    {
-                                        proofStringEl && (
-                                            <button onClick={copyProof}>Copy Proof of Deposit</button>
-                                        )
-                                    }
-                                    
-                                </div>
-                            ) : (
-                                <button onClick={depositEther}>Deposite 0.1 ETH</button>
-                            )
-                        }
-                    </div>
-                ) : (
-                    <p>Please Connect Metamask</p>
-                )
-            }
-
-            <div>
-                <hr/>
-            </div>
-
-            {
-                account ? (
-                    <div>
-                        <div>
-                            <textarea ref={(ta) => {updateTextArea(ta);}}></textarea>
-                        </div> 
-                        <button onClick={withdraw}>Withdraw 0.1 ETH</button>
-                    </div>
-                ) : (
-                    <p>Please Connect Metamask</p>
-                )
-            }
-
         </div>
-    
-    )
+    );
 };
 
 export default Interface;
